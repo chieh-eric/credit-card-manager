@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { CARDS } from '../data/cards'
 import { csvToTransactions, mergeTxns } from '../lib/csv'
 import { useStore, type Txn } from '../lib/store'
-import { Section, usd } from './ui'
+import { ConfirmButton, Section, usd } from './ui'
 
 interface SfAccount {
   id: string
@@ -250,9 +250,7 @@ function TxnList({ txns, onClear }: { txns: Txn[]; onClear: () => void }) {
                 </option>
               ))}
             </select>
-            <button className="btn-ghost" onClick={() => confirm('確定刪除所有已匯入的交易？') && onClear()}>
-              清除
-            </button>
+            <ConfirmButton label="清除" confirmLabel="刪除所有已匯入的交易？" onConfirm={onClear} />
           </div>
         )
       }

@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { CARDS } from '../data/cards'
 import { allStatuses, cardYearValue, upcomingFees, type BenefitStatus } from '../lib/benefits'
-import { buildIcs, downloadText } from '../lib/ics'
+import { buildIcs } from '../lib/ics'
+import { inClaude, saveTextFile } from '../lib/platform'
 import { notificationsSupported, requestAndNotify } from '../lib/notify'
 import { PERIOD_LABEL, PERIODS_PER_YEAR } from '../lib/periods'
 import { useStore } from '../lib/store'
@@ -35,9 +36,14 @@ export function Dashboard({ go }: { go: (tab: string) => void }) {
   const fees = upcomingFees(state, today).filter((f) => f.daysLeft <= 60)
   const missingOpen = owned.filter((c) => (c.annualFee > 0 || c.benefits.some((b) => b.period === 'cardYear')) && !state.openDates[c.id])
 
-  const exportIcs = () => {
-    downloadText('card-benefits.ics', buildIcs(state, today), 'text/calendar')
-    setMsg('已下載 .ics — 用 Google Calendar / Apple 行事曆匯入，每個到期日前會提醒你。')
+  const exportIcs = async () => {
+    const r = await saveTextFile('card-benefits.ics', buildIcs(state, today), 'text/calendar')
+    if (!r.ok) return setMsg(r.message)
+    setMsg(
+      r.filename?.endsWith('.txt')
+        ? `已儲存 ${r.filename}。把檔名最後的 .txt 刪掉（變成 .ics），再用 Google 日曆或 Apple 行事曆匯入，每個到期日前 ${state.reminderDays} 天會提醒你。`
+        : `已下載 .ics，用 Google 日曆或 Apple 行事曆匯入，每個到期日前 ${state.reminderDays} 天會提醒你。`,
+    )
   }
   const notify = async () => {
     const r = await requestAndNotify(statuses, state.reminderDays)
@@ -74,7 +80,7 @@ export function Dashboard({ go }: { go: (tab: string) => void }) {
                 <button className="btn-ghost" onClick={exportIcs}>
                   📆 加入行事曆
                 </button>
-                {notificationsSupported() && (
+                {notificationsSupported() && !inClaude() && (
                   <button className="btn-ghost" onClick={notify}>
                     🔔 通知我
                   </button>

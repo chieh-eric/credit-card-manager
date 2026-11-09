@@ -68,8 +68,12 @@ export interface Card {
   network: 'Amex' | 'Visa' | 'Mastercard'
   annualFee: number
   currency: Currency
-  /** Gradient used for the card art. */
-  color: [string, string]
+  /** Gradient stops used for the card art (dark → light). */
+  color: [string, string, string]
+  /** Text colour on the card face. */
+  ink: 'light' | 'dark'
+  /** Metal cards get a brushed sheen. */
+  finish: 'metal' | 'plastic'
   foreignTxFee: boolean
   earn: EarnRate[]
   benefits: Benefit[]

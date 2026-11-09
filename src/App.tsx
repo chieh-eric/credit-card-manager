@@ -7,7 +7,7 @@ import { WhichCard } from './components/WhichCard'
 import { allStatuses } from './lib/benefits'
 import { dailyReminder } from './lib/notify'
 import { toISO } from './lib/periods'
-import { useStore } from './lib/store'
+import { useStore, type SyncStatus } from './lib/store'
 
 const TABS = [
   { id: 'today', label: '總覽', icon: '✅' },
@@ -26,7 +26,7 @@ const fromHash = (): TabId => {
 
 export default function App() {
   const [tab, setTab] = useState<TabId>(fromHash)
-  const { state, setState, today } = useStore()
+  const { state, setState, today, sync } = useStore()
 
   useEffect(() => {
     const onHash = () => setTab(fromHash())
@@ -58,8 +58,9 @@ export default function App() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-sm font-bold text-white">$</div>
             <div>
               <div className="text-sm font-semibold leading-tight">Card Benefits</div>
-              <div className="text-xs text-slate-500">
+              <div className="flex items-center gap-1.5 text-xs text-slate-500">
                 {today.getFullYear()}/{today.getMonth() + 1}/{today.getDate()}
+                <SyncBadge status={sync} />
               </div>
             </div>
           </div>
@@ -111,5 +112,22 @@ export default function App() {
         ))}
       </nav>
     </div>
+  )
+}
+
+function SyncBadge({ status }: { status: SyncStatus }) {
+  const map: Record<SyncStatus, [string, string, string]> = {
+    local: ['bg-slate-400', '只存在此裝置', '資料存在這個瀏覽器'],
+    connecting: ['bg-amber-400 animate-pulse', '連線中', '正在連線到 Claude 雲端'],
+    synced: ['bg-emerald-500', '已同步', '已同步到你的 Claude 帳號，其他裝置也看得到'],
+    saving: ['bg-sky-500 animate-pulse', '儲存中', '正在儲存到 Claude 雲端'],
+    offline: ['bg-rose-500', '未同步', '暫時連不到雲端，變更先存在此裝置'],
+  }
+  const [dot, label, title] = map[status]
+  return (
+    <span className="inline-flex items-center gap-1" title={title}>
+      <span className={`h-1.5 w-1.5 rounded-full ${dot}`} aria-hidden />
+      {label}
+    </span>
   )
 }

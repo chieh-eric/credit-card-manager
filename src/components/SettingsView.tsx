@@ -1,12 +1,14 @@
 import { CARDS } from '../data/cards'
 import { CURRENCY_LABEL, DEFAULT_CPP } from '../data/categories'
 import type { Currency } from '../data/types'
-import { downloadText } from '../lib/ics'
+import { useState } from 'react'
+import { saveTextFile } from '../lib/platform'
 import { defaultState, useStore, type AppState } from '../lib/store'
-import { CardArt, Section } from './ui'
+import { CardArt, ConfirmButton, Section } from './ui'
 
 export function SettingsView() {
   const { state, setState } = useStore()
+  const [msg, setMsg] = useState<string | null>(null)
 
   const toggleOwned = (id: string, on: boolean) =>
     setState((s) => ({ ...s, ownedCards: on ? [...new Set([...s.ownedCards, id])] : s.ownedCards.filter((c) => c !== id) }))
@@ -16,9 +18,9 @@ export function SettingsView() {
       const data = JSON.parse(await f.text()) as Partial<AppState>
       if (data.version !== 1) throw new Error()
       setState(() => ({ ...defaultState(), ...data }))
-      alert('已還原備份')
+      setMsg('已還原備份。')
     } catch {
-      alert('不是有效的備份檔')
+      setMsg('這不是有效的備份檔，請選擇之前匯出的 .json 檔。')
     }
   }
 
@@ -98,18 +100,28 @@ export function SettingsView() {
         </div>
       </Section>
 
-      <Section title="資料備份" subtitle="所有資料只存在這個瀏覽器（localStorage）。換電腦前請先匯出備份">
+      <Section title="資料備份" subtitle="在 claude.ai 開啟時，資料會自動同步到你的 Claude 帳號（只有你看得到）；其他地方開啟時只存在這個瀏覽器">
+        {msg && <p className="rounded-lg bg-indigo-50 px-3 py-2 text-sm text-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-200">{msg}</p>}
         <div className="flex flex-wrap gap-2">
-          <button className="btn-ghost" onClick={() => downloadText(`card-benefits-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(state, null, 2), 'application/json')}>
+          <button
+            className="btn-ghost"
+            onClick={async () => setMsg((await saveTextFile(`card-benefits-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(state, null, 2), 'application/json')).message)}
+          >
             ⬇ 匯出備份
           </button>
           <label className="btn-ghost cursor-pointer">
             ⬆ 匯入備份
             <input type="file" accept="application/json" className="sr-only" onChange={(e) => e.target.files?.[0] && importBackup(e.target.files[0])} />
           </label>
-          <button className="btn-ghost text-rose-600" onClick={() => confirm('確定清除所有資料？') && setState(() => defaultState())}>
-            清除所有資料
-          </button>
+          <ConfirmButton
+            label="清除所有資料"
+            confirmLabel="清除所有勾選紀錄、開卡日與交易？"
+            className="btn-ghost text-rose-600"
+            onConfirm={() => {
+              setState(() => defaultState())
+              setMsg('已清除所有資料。')
+            }}
+          />
         </div>
       </Section>
     </div>
