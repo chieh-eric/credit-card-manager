@@ -14,7 +14,7 @@ const TABS = [
   { id: 'which', label: '刷哪張', icon: '💳' },
   { id: 'cards', label: '我的卡', icon: '🗂️' },
   { id: 'data', label: '交易同步', icon: '🔄' },
-  { id: 'settings', label: '設定', icon: '⚙️' },
+  { id: 'setup', label: '設定', icon: '⚙️' },
 ] as const
 
 type TabId = (typeof TABS)[number]['id']
@@ -88,7 +88,7 @@ export default function App() {
         {tab === 'which' && <WhichCard />}
         {tab === 'cards' && <CardsView />}
         {tab === 'data' && <SyncView />}
-        {tab === 'settings' && <SettingsView />}
+        {tab === 'setup' && <SettingsView />}
       </main>
 
       {/* Mobile bottom navigation */}

@@ -58,7 +58,7 @@ export function Dashboard({ go }: { go: (tab: string) => void }) {
           <span>
             填寫開卡日後，週年 credit（{missingOpen.map((c) => c.shortName).join('、')}）與年費提醒才會準確。
           </span>
-          <button className="btn-primary" onClick={() => go('settings')}>
+          <button className="btn-primary" onClick={() => go('setup')}>
             去設定
           </button>
         </div>
